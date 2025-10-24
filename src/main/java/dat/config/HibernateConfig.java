@@ -1,5 +1,8 @@
 package dat.config;
 
+import dat.entities.Exercise;
+import dat.entities.Workout;
+import dat.entities.WorkoutItem;
 import dat.security.entities.Role;
 import dat.security.entities.User;
 import dat.utils.Utils;
@@ -43,6 +46,9 @@ public class HibernateConfig {
     private static void getAnnotationConfiguration(Configuration configuration) {
         configuration.addAnnotatedClass(User.class);
         configuration.addAnnotatedClass(Role.class);
+        configuration.addAnnotatedClass(Exercise.class);
+        configuration.addAnnotatedClass(WorkoutItem.class);
+        configuration.addAnnotatedClass(Workout.class);
     }
 
     private static EntityManagerFactory createEMF(boolean forTest) {

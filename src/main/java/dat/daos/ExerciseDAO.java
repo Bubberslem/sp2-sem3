@@ -1,58 +1,84 @@
 package dat.daos;
 
+import dat.dtos.ExerciseDTO;
 import dat.entities.Exercise;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.TypedQuery;
 
 import java.util.List;
 
-public class ExerciseDAO implements IDAO<Exercise, Integer> {
+public class ExerciseDAO implements IDAO<ExerciseDTO, Integer> {
 
-    private final EntityManager em;
+    private static ExerciseDAO instance;
+    private static EntityManagerFactory emf;
 
-    public ExerciseDAO(EntityManager em) {
-        this.em = em;
+    public static ExerciseDAO getInstance(EntityManagerFactory _emf) {
+        if (instance == null) {
+            emf = _emf;
+            instance = new ExerciseDAO();
+        }
+        return instance;
     }
 
     @Override
-    public Exercise read(Integer id) {
-        return em.find(Exercise.class, id);
+    public ExerciseDTO read(Integer integer) {
+        try (EntityManager em = emf.createEntityManager()) {
+            Exercise exercise = em.find(Exercise.class, integer);
+            return new ExerciseDTO(exercise);
+        }
     }
 
     @Override
-    public List<Exercise> readAll() {
-        TypedQuery<Exercise> q = em.createQuery("SELECT e FROM Exercise e", Exercise.class);
-        return q.getResultList();
+    public List<ExerciseDTO> readAll() {
+        try (EntityManager em = emf.createEntityManager()) {
+            TypedQuery<ExerciseDTO> query = em.createQuery("SELECT new dat.dtos.ExerciseDTO(e) FROM Exercise e", ExerciseDTO.class);
+            return query.getResultList();
+        }
     }
 
     @Override
-    public Exercise create(Exercise exercise) {
-        em.getTransaction().begin();
-        em.persist(exercise);
-        em.getTransaction().commit();
-        return exercise;
-    }
-
-    @Override
-    public Exercise update(Integer id, Exercise exercise) {
-        em.getTransaction().begin();
-        Exercise merged = em.merge(exercise);
-        em.getTransaction().commit();
-        return merged;
-    }
-
-    @Override
-    public void delete(Integer id) {
-        Exercise e = em.find(Exercise.class, id);
-        if (e != null) {
+    public ExerciseDTO create(ExerciseDTO exerciseDTO) {
+        try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
-            em.remove(e);
+            Exercise exercise = new Exercise(exerciseDTO);
+            em.persist(exercise);
+            em.getTransaction().commit();
+            return new ExerciseDTO(exercise);
+        }
+    }
+
+    @Override
+    public ExerciseDTO update(Integer integer, ExerciseDTO exerciseDTO) {
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+            Exercise e = em.find(Exercise.class, integer);
+            e.setExerciseName(exerciseDTO.getExerciseName());
+            e.setPrimaryMuscle(exerciseDTO.getPrimaryMuscle());
+            e.setExerciseDifficulty(exerciseDTO.getExerciseDifficulty());
+            Exercise mergedExercise = em.merge(e);
+            em.getTransaction().commit();
+            return mergedExercise != null ? new ExerciseDTO(mergedExercise) : null;
+        }
+    }
+
+    @Override
+    public void delete(Integer integer) {
+        try (EntityManager em = emf.createEntityManager()) {
+            em.getTransaction().begin();
+            Exercise exercise = em.find(Exercise.class, integer);
+            if (exercise != null) {
+                em.remove(exercise);
+            }
             em.getTransaction().commit();
         }
     }
 
     @Override
-    public boolean validatePrimaryKey(Integer id) {
-        return em.find(Exercise.class, id) != null;
+    public boolean validatePrimaryKey(Integer integer) {
+        try (EntityManager em = emf.createEntityManager()) {
+            Exercise exercise = em.find(Exercise.class, integer);
+            return exercise != null;
+        }
     }
 }
