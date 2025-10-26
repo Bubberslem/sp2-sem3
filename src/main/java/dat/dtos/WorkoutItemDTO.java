@@ -15,10 +15,11 @@ public class WorkoutItemDTO {
 
     private Integer id;
     private ExerciseDTO exercise;
+    private WorkoutDTO workout;
     private Integer sets;
     private Integer reps;
     private BigDecimal weight;
-    private Integer workoutId; // reference to parent workout
+
 
     public WorkoutItemDTO(WorkoutItem workoutItem) {
         if (workoutItem == null) return;
@@ -27,7 +28,7 @@ public class WorkoutItemDTO {
         this.sets = workoutItem.getSets();
         this.reps = workoutItem.getReps();
         this.weight = workoutItem.getWeight();
-        if (workoutItem.getWorkout() != null) this.workoutId = workoutItem.getWorkout().getId();
+        this.workout = new WorkoutDTO(workoutItem.getWorkout());
     }
     public static List<WorkoutItemDTO> toWorkoutItemDTOList(List<WorkoutItem> workoutItems) {
         return workoutItems.stream().map(WorkoutItemDTO::new).collect(Collectors.toList());

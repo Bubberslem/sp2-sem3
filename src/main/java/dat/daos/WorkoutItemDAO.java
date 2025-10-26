@@ -2,11 +2,12 @@ package dat.daos;
 
 import dat.dtos.WorkoutItemDTO;
 import dat.entities.WorkoutItem;
+import dat.entities.Workout;
+import dat.entities.Exercise;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.TypedQuery;
 
-import java.time.LocalDate;
 import java.util.List;
 
 public class WorkoutItemDAO implements IDAO<WorkoutItemDTO, Integer> {
@@ -33,33 +34,65 @@ public class WorkoutItemDAO implements IDAO<WorkoutItemDTO, Integer> {
     @Override
     public List<WorkoutItemDTO> readAll() {
         try (EntityManager em = emf.createEntityManager()) {
-            TypedQuery<WorkoutItemDTO> query = em.createQuery("SELECT new dat.dtos.WorkoutItemDTO(w) FROM WorkoutItem w", WorkoutDTO.class);
+            TypedQuery<WorkoutItemDTO> query = em.createQuery(
+                "SELECT new dat.dtos.WorkoutItemDTO(w) FROM WorkoutItem w",
+                WorkoutItemDTO.class
+            );
             return query.getResultList();
         }
     }
 
     @Override
-    public WorkoutDTO create(WorkoutDTO workoutDTO) {
+    public WorkoutItemDTO create(WorkoutItemDTO workoutItemDTO) {
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
-            Workout workout = new Workout(workoutDTO);
-            em.persist(workout);
+            WorkoutItem workoutItem = new WorkoutItem();
+            // scalar fields
+            workoutItem.setSets(workoutItemDTO.getSets() != null ? workoutItemDTO.getSets() : 0);
+            workoutItem.setReps(workoutItemDTO.getReps());
+            workoutItem.setWeight(workoutItemDTO.getWeight());
+            // resolve exercise relation if DTO provides an exercise id
+            if (workoutItemDTO.getExercise() != null && workoutItemDTO.getExercise().getId() != null) {
+                Exercise exercise = em.find(Exercise.class, workoutItemDTO.getExercise().getId());
+                workoutItem.setExercise(exercise);
+            }
+            // resolve workout relation if DTO provides a workout id
+            if (workoutItemDTO.getWorkout() != null && workoutItemDTO.getWorkout().getId() != null) {
+                Workout workout = em.find(Workout.class, workoutItemDTO.getWorkout().getId());
+                workoutItem.setWorkout(workout);
+            }
+            em.persist(workoutItem);
             em.getTransaction().commit();
-            return new WorkoutDTO(workout);
+            return new WorkoutItemDTO(workoutItem);
         }
     }
 
     @Override
-    public WorkoutDTO update(Integer integer, WorkoutDTO workoutDTO) {
+    public WorkoutItemDTO update(Integer integer, WorkoutItemDTO workoutItemDTO) {
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
-            Workout w = em.find(Workout.class, integer);
-            w.setWorkoutTitle(workoutDTO.getWorkoutTitle());
-            w.setScheduledDate(LocalDate.parse(workoutDTO.getScheduledDate()));
-            w.setWorkoutNotes(workoutDTO.getWorkoutNotes());
-            Workout mergedWorkout = em.merge(w);
+            WorkoutItem wi = em.find(WorkoutItem.class, integer);
+            if (wi == null) {
+                em.getTransaction().commit();
+                return null;
+            }
+            // update scalar fields if provided
+            if (workoutItemDTO.getSets() != null) wi.setSets(workoutItemDTO.getSets());
+            if (workoutItemDTO.getReps() != null) wi.setReps(workoutItemDTO.getReps());
+            if (workoutItemDTO.getWeight() != null) wi.setWeight(workoutItemDTO.getWeight());
+            // update exercise relation if DTO contains an exercise id
+            if (workoutItemDTO.getExercise() != null && workoutItemDTO.getExercise().getId() != null) {
+                Exercise exercise = em.find(Exercise.class, workoutItemDTO.getExercise().getId());
+                wi.setExercise(exercise);
+            }
+            // update workout relation if DTO contains a workout id
+            if (workoutItemDTO.getWorkout() != null && workoutItemDTO.getWorkout().getId() != null) {
+                Workout workout = em.find(Workout.class, workoutItemDTO.getWorkout().getId());
+                wi.setWorkout(workout);
+            }
+            WorkoutItem merged = em.merge(wi);
             em.getTransaction().commit();
-            return mergedWorkout != null ? new WorkoutDTO(mergedWorkout) : null;
+            return merged != null ? new WorkoutItemDTO(merged) : null;
         }
     }
 
@@ -67,9 +100,9 @@ public class WorkoutItemDAO implements IDAO<WorkoutItemDTO, Integer> {
     public void delete(Integer integer) {
         try (EntityManager em = emf.createEntityManager()) {
             em.getTransaction().begin();
-            Workout workout = em.find(Workout.class, integer);
-            if (workout != null) {
-                em.remove(workout);
+            WorkoutItem wi = em.find(WorkoutItem.class, integer);
+            if (wi != null) {
+                em.remove(wi);
             }
             em.getTransaction().commit();
         }
@@ -78,8 +111,8 @@ public class WorkoutItemDAO implements IDAO<WorkoutItemDTO, Integer> {
     @Override
     public boolean validatePrimaryKey(Integer integer) {
         try (EntityManager em = emf.createEntityManager()) {
-            Workout workout = em.find(Workout.class, integer);
-            return workout != null;
+            WorkoutItem wi = em.find(WorkoutItem.class, integer);
+            return wi != null;
         }
     }
 }
