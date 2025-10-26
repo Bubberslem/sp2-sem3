@@ -1,0 +1,132 @@
+# Server variables — update host/port/path if needed
+@host = http://localhost:7070
+@api = {{host}}/api
+
+### List all exercises
+GET {{api}}/exercise
+Accept: application/json
+
+###
+
+### Create an exercise
+POST {{api}}/exercise
+Content-Type: application/json
+
+{
+  "exerciseName": "Push Up",
+  "primaryMuscle": "Chest",
+  "exerciseDifficulty": "BEGINNER"
+}
+
+###
+
+### Get exercise by id (replace :id)
+GET {{api}}/exercise/1
+Accept: application/json
+
+###
+
+### Update exercise (replace :id)
+PUT {{api}}/exercise/1
+Content-Type: application/json
+
+{
+  "exerciseName": "Push Up Modified",
+  "primaryMuscle": "Chest",
+  "exerciseDifficulty": "INTERMEDIATE"
+}
+
+###
+
+### Delete exercise (replace :id)
+DELETE {{api}}/exercise/1
+
+###
+
+### List all workouts
+GET {{api}}/workouts
+Accept: application/json
+
+###
+
+### Create a workout
+# Note: Workout entity requires a user. If your API expects a user, add it; otherwise adjust as needed.
+POST {{api}}/workouts
+Content-Type: application/json
+
+{
+  "workoutTitle": "Morning Routine",
+  "scheduledDate": "2025-10-27",
+  "workoutNotes": "Cardio and core",
+  "items": []
+}
+
+###
+
+### Get workout by id (replace :id)
+GET {{api}}/workouts/1
+Accept: application/json
+
+###
+
+### Update workout (replace :id)
+PUT {{api}}/workouts/1
+Content-Type: application/json
+
+{
+  "workoutTitle": "Updated Routine",
+  "scheduledDate": "2025-10-28",
+  "workoutNotes": "Updated notes",
+  "items": []
+}
+
+###
+
+### Delete workout (replace :id)
+DELETE {{api}}/workouts/1
+
+###
+
+### List workout items
+GET {{api}}/workout-items
+Accept: application/json
+
+###
+
+### Create workout item (replace exercise/workout ids)
+POST {{api}}/workout-items
+Content-Type: application/json
+
+{
+  "sets": 3,
+  "reps": 12,
+  "weight": 0,
+  "exercise": { "id": 1 },
+  "workout": { "id": 1 }
+}
+
+###
+
+### Get workout item by id (replace :id)
+GET {{api}}/workout-items/1
+Accept: application/json
+
+###
+
+### Update workout item (replace :id)
+PUT {{api}}/workout-items/1
+Content-Type: application/json
+
+{
+  "sets": 4,
+  "reps": 10,
+  "weight": 5,
+  "exercise": { "id": 1 },
+  "workout": { "id": 1 }
+}
+
+###
+
+### Delete workout item (replace :id)
+DELETE {{api}}/workout-items/1
+
